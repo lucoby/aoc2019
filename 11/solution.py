@@ -107,26 +107,44 @@ class Intcomputer():
     def input(self, value):
         self.inputs.insert(0, value)
 
+def robot_sim(input, start_color = 0):
+    hull = {}
+    position = (0, 0)
+    orientation = "up"
+    directions = {"left": (-1, 0), "right": (1, 0), "up": (0, 1), "down": (0, -1)}
+    relative_pos ={"up": ("left", "right"), "left": ("down", "up"), "down": ("right", "left"), "right": ("up", "down")}
+    computer = Intcomputer(input, inputs=[start_color])
+    i = 0
+    while True:
+        # print(f"i: {i}")
+        color = computer.run_program()
+        # print(f"color: {color}")
+        if color == None:
+            break
+        direction = computer.run_program()
+        # print(f"dir: {direction}")
+        hull[position] = color
+        # print(f"hull: {hull}")
+        orientation = relative_pos[orientation][direction]
+        position = (position[0] + directions[orientation][0], position[1] + directions[orientation][1])
+        # print(f"new pos: {position}")
+        # print(f"new ori: {orientation}")
+        computer.input(hull[position] if position in hull else 0)
+        i += 1
+        # if i > 20:
+        #     break
+    return hull
 
-test = "109,1,204,-1,1001,100,1,100,1008,100,16,101,1006,101,0,99"
-computer = Intcomputer(test)
-assert computer.run_until_done() == [109, 1, 204, -1, 1001, 100, 1, 100, 1008, 100, 16, 101, 1006, 101, 0, 99]
-
-test = "1102,34915192,34915192,7,4,7,99,0"
-computer = Intcomputer(test)
-assert computer.run_until_done()[0] >= 1e15
-
-test = "104,1125899906842624,99"
-computer = Intcomputer(test)
-assert computer.run_until_done()[0] == 1125899906842624
 
 input = ''.join(open("input.txt", "r").readlines())
-computer = Intcomputer(input, inputs=[1])
-print(computer.run_until_done())
+print(len(robot_sim(input)))
+
 
 print("\nPart 2")
 
-input = ''.join(open("input.txt", "r").readlines())
-computer = Intcomputer(input, inputs=[2])
-print(computer.run_until_done())
-
+input = "".join(open("input.txt", "r").readlines())
+hull = robot_sim(input, start_color=1)
+hull_arr = [["#" for i in range(50)] for j in range(10)]
+for coord in hull:
+    hull_arr[coord[1] + 6][coord[0]+1] = "#" if hull[coord] == 0 else " "
+print("\n".join(["".join(l) for l in hull_arr]))
